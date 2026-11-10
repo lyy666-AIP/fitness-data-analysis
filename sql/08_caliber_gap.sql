@@ -112,3 +112,13 @@ SELECT COUNT(*) AS common_days,
 FROM cmp2;
 -- 实测：43 天 / mean 0.053 / max 0.229
 -- 注：ma7_py 窗口口径更严，非空天数比日历口径少 5 天
+
+-- ⑥ 化石列补刀①：跳NaN机制独立复现（结果 49.24 vs 化石 49.25）
+SELECT log_date, ROUND(AVG(weight_kg) OVER w, 2) AS ma7_skipnan
+FROM daily_clean
+WINDOW w AS (ORDER BY log_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
+ORDER BY log_date DESC LIMIT 1;
+
+-- ⑦ 化石列补刀②：越界检查（结果 1 → 判定实锤）
+SELECT COUNT(*) AS fossil_out_of_band
+FROM daily_clean WHERE ma7_py IS NOT NULL AND weight_kg IS NULL;
