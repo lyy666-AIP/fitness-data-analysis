@@ -70,9 +70,9 @@ SQL 重建过程中审计出的记录与口径问题（已回写 `data_quality.m
  
 | 文件                                           | 内容                                    |
 | -------------------------------------------- | ------------------------------------- |
-| [减脂数据分析报告.md](./减脂数据分析报告.md)                 | 完整报告（执行摘要 → 数据治理 → 4个分析问题 → 因果边界）     |
+| [完整报告](./docs/report.md)                | 完整报告（执行摘要 → 数据治理 → 4个分析问题 → 因果边界）     |
 | [fitness_analysis.py](./fitness_analysis.py) | 全部代码，`python fitness_analysis.py` 可复现 |
-| [data_quality.md](./data_quality.md)         | 缺失日归因、填0原则、口径偏差说明                     |
+| [data_quality.md](./docs/data_quality.md)         | 缺失日归因、填0原则、口径偏差说明                     |
 | `data/import_to_sqlite.py`                   | SQLite 建库脚本（daily_clean + train_log → fitness.db） |
 | `sql/`                                       | 15 个 SQL 脚本：`00~06d` 主链回答四个问题，`08~11` 验证层做方法论审计 |
 | `results/`                                   | 关键结果截图（SQL 实测输出与图表对照）                 |
