@@ -4,7 +4,7 @@
 -- 口径A 日历版：61 天日历轴 + 线性插值 + 7 日均线（窗口 >= 3 观测）
 -- 口径B 记录日版：仅记录日 + 最近 7 个非空记录日均线（窗口 >= 3 观测）
 -- ③ 口径A vs 口径B：口径分歧
--- ⑤ 口径A vs Python 导出列 ma7_py：跨实现对账
+-- ④b 分歧最大的 5 天 + 定点核对
 -- ============================================================
 
 -- ① 物化日历版填充序列（61 天，缺失日已插值）
@@ -94,31 +94,3 @@ LIMIT 5;
 SELECT c.log_date, ROUND(c.ma7, 2) AS cal, ROUND(r.ma7, 2) AS rec
 FROM _ma7_cal c JOIN _ma7_rec r ON r.log_date = c.log_date
 WHERE c.log_date IN ('2026-08-28', '2026-09-10', '2026-09-28');
-
--- ⑤ 跨实现对账：SQL 日历版 vs Python 导出的 ma7_py
--- 预检：确认列存在
-SELECT COUNT(*) AS has_ma7py
-FROM pragma_table_info('daily_clean') WHERE name = 'ma7_py';
-
-WITH cmp2 AS (
-    SELECT c.log_date, c.ma7 AS ma7_sql_cal, d.ma7_py
-    FROM _ma7_cal c
-    JOIN daily_clean d ON d.log_date = c.log_date
-    WHERE c.n_obs >= 3 AND d.ma7_py IS NOT NULL
-)
-SELECT COUNT(*) AS common_days,
-       ROUND(AVG(ABS(ma7_sql_cal - ma7_py)), 4) AS mean_abs_gap,
-       ROUND(MAX(ABS(ma7_sql_cal - ma7_py)), 3) AS max_abs_gap
-FROM cmp2;
--- 实测：43 天 / mean 0.053 / max 0.229
--- 注：ma7_py 窗口口径更严，非空天数比日历口径少 5 天
-
--- ⑥ 化石列补刀①：跳NaN机制独立复现（结果 49.24 vs 化石 49.25）
-SELECT log_date, ROUND(AVG(weight_kg) OVER w, 2) AS ma7_skipnan
-FROM daily_clean
-WINDOW w AS (ORDER BY log_date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
-ORDER BY log_date DESC LIMIT 1;
-
--- ⑦ 化石列补刀②：越界检查（结果 1 → 判定实锤）
-SELECT COUNT(*) AS fossil_out_of_band
-FROM daily_clean WHERE ma7_py IS NOT NULL AND weight_kg IS NULL;
